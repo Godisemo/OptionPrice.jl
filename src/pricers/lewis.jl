@@ -12,17 +12,18 @@ struct Lewis <: AbstractPricer
   end
 end
 
-_lewis_integrand(m, x, k, r, q, T, u) =
-  real(exp(u + logmgf(m, T, 0.5 + u * im) + im * u * (x - k + (r - q) * T))) / (u^2 + 0.25)
+_lewis_integrand(m, x0, x, k, r, q, T, u) =
+  real(exp(u + logmgf(m, x0, T, 0.5 + u * im) + im * u * (x - k + (r - q) * T))) / (u^2 + 0.25)
 
-function integral(m, p::Lewis, x, k, r, q, T)
+function integral(m, p::Lewis, x0, x, k, r, q, T)
   z = 0.0
   @simd for i in 1:length(p.x)
-    @inbounds z += p.w[i] * _lewis_integrand(m, x, k, r, q, T, p.x[i])
+    @inbounds z += p.w[i] * _lewis_integrand(m, x0, x, k, r, q, T, p.x[i])
   end
   z
 end
 
-function price(model, pricer::Lewis, stock, strike, rate, time; yield=0.0)
-  stock * exp(-yield * time) - 1 / pi * sqrt(stock * strike) * exp(-0.5 * (rate + yield) * time) * integral(model, pricer, log(stock), log(strike), rate, yield, time)
+function price(model, pricer::Lewis, x0, strike, rate, time; yield=0.0)
+  stock = x0[1]
+  stock * exp(-yield * time) - 1 / pi * sqrt(stock * strike) * exp(-0.5 * (rate + yield) * time) * integral(model, pricer, x0, log(stock), log(strike), rate, yield, time)
 end

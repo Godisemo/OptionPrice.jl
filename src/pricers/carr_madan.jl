@@ -12,24 +12,25 @@ struct CarrMadan <: AbstractPricer
   end
 end
 
-function _carr_madan_integrand(m, x, k, r, T, α, u)
+function _carr_madan_integrand(m, x0, x, k, r, T, α, u)
   v = α + 1 + u * im
-  real(exp(u + logmgf(m, T, v) + v * (x - k + r * T)) / (v^2 - v))
+  real(exp(u + logmgf(m, x0, T, v) + v * (x - k + r * T)) / (v^2 - v))
 end
 
-function integral(m, p::CarrMadan, x, k, r, T, α)
+function integral(m, p::CarrMadan, x0, x, k, r, T, α)
   z = 0.0
   @simd for i in 1:length(p.x)
-    @inbounds z += p.w[i] * _carr_madan_integrand(m, x, k, r, T, α, p.x[i])
+    @inbounds z += p.w[i] * _carr_madan_integrand(m, x0, x, k, r, T, α, p.x[i])
   end
   z
 end
 
-function price(model, pricer::CarrMadan, stock, strike, rate, time)
+function price(model, pricer::CarrMadan, x0, strike, rate, time)
+  stock = x0[1]
   logstock = log(stock)
   logstrike = log(strike)
   lb, ub = analyticinterval(model)
-  f = α -> α * (rate * time + logstock - logstrike) + logmgf(model, time, α + 1) - log(α^2 + α)
+  f = α -> α * (rate * time + logstock - logstrike) + logmgf(model, x0, time, α + 1) - log(α^2 + α)
   α = Optim.minimizer(optimize(f, max(0.0, lb - 1.0), min(1000.0, ub - 1.0)))
-  exp(logstrike - rate * time) / pi * integral(model, pricer, logstock, logstrike, rate, time, α)
+  exp(logstrike - rate * time) / pi * integral(model, pricer, x0, logstock, logstrike, rate, time, α)
 end
