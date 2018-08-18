@@ -1,0 +1,11 @@
+name = "OptionPrice"
+uuid = "78ec05e3-c551-5f9d-bbc4-54673a7c1732"
+authors = ["Godisemo <carl.akerlindh@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+GaussQuadrature = "d54b0c1a-921d-58e0-8e36-89d8069c0969"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+SDEModels = "18709ec8-a215-11e8-24aa-d9e9f5c70668"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
